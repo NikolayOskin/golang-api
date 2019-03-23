@@ -1,4 +1,4 @@
-package postController
+package postcontroller
 
 import (
 	"api/controllers/handler"
@@ -6,6 +6,7 @@ import (
 	"api/repository/postsRepository"
 	"api/validators"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 )
@@ -16,26 +17,36 @@ func GetAll(w http.ResponseWriter, r *http.Request) {
 	handler.RespondJSON(w, http.StatusOK, posts)
 }
 
-// GetPost - get exact post
-func GetPost(w http.ResponseWriter, r *http.Request) {
+// GetOne - get exact post
+func GetOne(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	post := postsRepository.GetById(params["id"])
-	if post == (models.Post{}) {
-		handler.RespondError(w, http.StatusNotFound, "404: Not Found")
-		return
-	}
+	post := postsRepository.GetByIdWithCategory(params["id"])
+	// if post == (models.Post{}) {
+	// 	handler.RespondError(w, http.StatusNotFound, "404: Not Found")
+	// 	return
+	// }
 	handler.RespondJSON(w, http.StatusOK, post)
 }
 
-// Create - store post
-func Create(w http.ResponseWriter, r *http.Request) {
+// Store - store post
+func Store(w http.ResponseWriter, r *http.Request) {
 	validationError := validators.Handler(w, r)
 	if validationError != nil {
 		handler.RespondValidationError(w, http.StatusForbidden, validationError)
 		return
 	}
 	var post models.Post
-	post = models.Post{Slug: r.FormValue("slug"), Title: r.FormValue("title"), Body: r.FormValue("body")}
+	categoryID, err := strconv.Atoi(r.FormValue("category_id"))
+	if err != nil {
+		handler.RespondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	post = models.Post{
+		Slug:       r.FormValue("slug"),
+		Title:      r.FormValue("title"),
+		Body:       r.FormValue("body"),
+		CategoryID: categoryID,
+	}
 	result, err := postsRepository.Create(post)
 	if err != nil {
 		handler.RespondError(w, http.StatusInternalServerError, err.Error())

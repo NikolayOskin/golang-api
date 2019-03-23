@@ -9,8 +9,8 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// Show - get category with related posts
-func Show(w http.ResponseWriter, r *http.Request) {
+// GetOne - get category with related posts
+func GetOne(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	category := categoryrepository.GetByIDWithPosts(params["id"])
 	handler.RespondJSON(w, http.StatusOK, category)
@@ -18,12 +18,27 @@ func Show(w http.ResponseWriter, r *http.Request) {
 
 // Store - store category in db
 func Store(w http.ResponseWriter, r *http.Request) {
-	var category models.Category
-	category = models.Category{Slug: r.FormValue("slug"), Title: r.FormValue("title")}
+	category := &models.Category{Slug: r.FormValue("slug"), Title: r.FormValue("title")}
 	result, err := categoryrepository.Store(category)
 	if err != nil {
 		handler.RespondError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 	handler.RespondJSON(w, http.StatusOK, result)
+}
+
+// Update - update existed category
+func Update(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	category := &models.Category{Slug: r.FormValue("slug"), Title: r.FormValue("title")}
+	result, err := categoryrepository.UpdateByID(params["id"], category)
+	if err != nil {
+		handler.RespondError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	handler.RespondJSON(w, http.StatusOK, result)
+}
+
+func Delete() {
+
 }
