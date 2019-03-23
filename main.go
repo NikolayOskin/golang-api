@@ -1,9 +1,10 @@
 package main
 
 import (
-	"api/controllers/postController"
+	"api/controllers/categorycontroller"
+	"api/controllers/postcontroller"
 	"api/db"
-	"api/models"
+	"api/db/migrations"
 	"log"
 	"net/http"
 
@@ -15,14 +16,22 @@ func main() {
 		panic(err.Error())
 	}
 	defer db.Close()
-	db.DB.DropTableIfExists("posts")
-	db.DB.AutoMigrate(&models.Post{})
+
+	migrations.Migrate()
 
 	router := mux.NewRouter()
-	router.HandleFunc("/posts", postController.GetAll).Methods("GET")
-	router.HandleFunc("/posts/{id}", postController.GetPost).Methods("GET")
-	router.HandleFunc("/posts/create", postController.Create).Methods("POST")
-	router.HandleFunc("/posts/{id}", postController.Update).Methods("PUT")
-	router.HandleFunc("/posts/{id}", postController.Delete).Methods("DELETE")
-	log.Fatal(http.ListenAndServe(":8080", router))
+
+	// posts
+	router.HandleFunc("/posts", postcontroller.GetAll).Methods("GET")
+	router.HandleFunc("/posts/{id}", postcontroller.GetOne).Methods("GET")
+	router.HandleFunc("/posts", postcontroller.Store).Methods("POST")
+	router.HandleFunc("/posts/{id}", postcontroller.Update).Methods("PUT")
+	router.HandleFunc("/posts/{id}", postcontroller.Delete).Methods("DELETE")
+
+	// categories
+	router.HandleFunc("/categories/{id}", categorycontroller.GetOne).Methods("GET")
+	router.HandleFunc("/categories", categorycontroller.Store).Methods("POST")
+	router.HandleFunc("/categories/{id}", categorycontroller.Update).Methods("PUT")
+	//router.HandleFunc("/categories/{id}", categorycontroller.Delete).Methods("DELETE")
+	log.Fatal(http.ListenAndServe(":8084", router))
 }
