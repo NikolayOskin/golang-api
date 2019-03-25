@@ -11,26 +11,21 @@ func Handler(w http.ResponseWriter, r *http.Request) map[string]interface{} {
 		"slug":  []string{"required"},
 		"title": []string{"required"},
 	}
-
-	messages := govalidator.MapData{
-		"slug":  []string{"required:"},
-		"title": []string{"required:"},
-	}
-
 	opts := govalidator.Options{
-		Request:         r,        // request object
-		Rules:           rules,    // rules map
-		Messages:        messages, // custom message map (Optional)
-		RequiredDefault: true,     // all the field to be pass the rules
+		Request:         r,     // request object
+		Rules:           rules, // rules map
+		RequiredDefault: true,  // all the field to be pass the rules
 	}
-	v := govalidator.New(opts)
-	e := v.Validate()
-	if len(e) == 0 {
-		return nil
-	}
-	err := map[string]interface{}{"validationError": e}
-	if e != nil {
+
+	validator := govalidator.New(opts)
+	validationErrors := validator.Validate()
+	err := map[string]interface{}{"validationError": validationErrors}
+	if len(validationErrors) != 0 {
 		return err
 	}
+	return nil
+}
+
+func Category(w http.ResponseWriter, r *http.Request) map[string]interface{} {
 	return nil
 }
